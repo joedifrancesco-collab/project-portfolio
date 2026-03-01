@@ -2,13 +2,11 @@ import { useState } from 'react';
 
 const FIELDS = [
   { key: 'name', label: 'Project Name' },
+  { key: 'description', label: 'Short Description', type: 'textarea' },
   { key: 'status', label: 'Status', type: 'select', options: ['Planning', 'In Progress', 'On Hold', 'Completed', 'Cancelled'] },
-  { key: 'priority', label: 'Priority', type: 'select', options: ['Low', 'Medium', 'High', 'Critical'] },
-  { key: 'owner', label: 'Owner' },
-  { key: 'startDate', label: 'Start Date', type: 'date' },
-  { key: 'targetDate', label: 'Target Date', type: 'date' },
-  { key: 'budget', label: 'Budget' },
-  { key: 'description', label: 'Description', type: 'textarea' },
+  { key: 'category', label: 'Category' },
+  { key: 'businessUnit', label: 'Business Unit' },
+  { key: 'businessSponsor', label: 'Business Sponsor' },
 ];
 
 const STATUS_BADGE = {
@@ -97,28 +95,20 @@ export default function ProjectProperties({ project, onUpdate }) {
           </span>
         </div>
         <div className="prop-item">
-          <span className="prop-label">Priority</span>
-          <span className="prop-value">{project.priority}</span>
+          <span className="prop-label">Category</span>
+          <span className="prop-value">{project.category || '—'}</span>
         </div>
         <div className="prop-item">
-          <span className="prop-label">Owner</span>
-          <span className="prop-value">{project.owner || '—'}</span>
+          <span className="prop-label">Business Unit</span>
+          <span className="prop-value">{project.businessUnit || '—'}</span>
         </div>
         <div className="prop-item">
-          <span className="prop-label">Start Date</span>
-          <span className="prop-value">{project.startDate || '—'}</span>
-        </div>
-        <div className="prop-item">
-          <span className="prop-label">Target Date</span>
-          <span className="prop-value">{project.targetDate || '—'}</span>
-        </div>
-        <div className="prop-item">
-          <span className="prop-label">Budget</span>
-          <span className="prop-value">{project.budget || '—'}</span>
+          <span className="prop-label">Business Sponsor</span>
+          <span className="prop-value">{project.businessSponsor || '—'}</span>
         </div>
         {project.description && (
           <div className="prop-item full-width">
-            <span className="prop-label">Description</span>
+            <span className="prop-label">Short Description</span>
             <span className="prop-value">{project.description}</span>
           </div>
         )}

@@ -11,7 +11,7 @@ const STATUS_COLORS = {
 export default function ProjectList({ projects, selectedId, onSelect, onAddProject, onDeleteProject }) {
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', status: 'Planning', priority: 'Medium', owner: '', description: '' });
+  const [form, setForm] = useState({ name: '', status: 'Planning', category: '', businessUnit: '', businessSponsor: '', description: '' });
 
   const filtered = projects.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -24,14 +24,11 @@ export default function ProjectList({ projects, selectedId, onSelect, onAddProje
     onAddProject({
       ...form,
       id: crypto.randomUUID(),
-      startDate: '',
-      targetDate: '',
-      budget: '',
       tasks: [],
       documents: [],
       notes: [],
     });
-    setForm({ name: '', status: 'Planning', priority: 'Medium', owner: '', description: '' });
+    setForm({ name: '', status: 'Planning', category: '', businessUnit: '', businessSponsor: '', description: '' });
     setShowForm(false);
   };
 
@@ -67,12 +64,6 @@ export default function ProjectList({ projects, selectedId, onSelect, onAddProje
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             required
           />
-          <input
-            className="form-input"
-            placeholder="Owner"
-            value={form.owner}
-            onChange={(e) => setForm({ ...form, owner: e.target.value })}
-          />
           <select
             className="form-select"
             value={form.status}
@@ -84,19 +75,27 @@ export default function ProjectList({ projects, selectedId, onSelect, onAddProje
             <option>Completed</option>
             <option>Cancelled</option>
           </select>
-          <select
-            className="form-select"
-            value={form.priority}
-            onChange={(e) => setForm({ ...form, priority: e.target.value })}
-          >
-            <option>Low</option>
-            <option>Medium</option>
-            <option>High</option>
-            <option>Critical</option>
-          </select>
+          <input
+            className="form-input"
+            placeholder="Category"
+            value={form.category}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+          />
+          <input
+            className="form-input"
+            placeholder="Business Unit"
+            value={form.businessUnit}
+            onChange={(e) => setForm({ ...form, businessUnit: e.target.value })}
+          />
+          <input
+            className="form-input"
+            placeholder="Business Sponsor"
+            value={form.businessSponsor}
+            onChange={(e) => setForm({ ...form, businessSponsor: e.target.value })}
+          />
           <textarea
             className="form-textarea"
-            placeholder="Description"
+            placeholder="Short description"
             rows={2}
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -122,7 +121,7 @@ export default function ProjectList({ projects, selectedId, onSelect, onAddProje
                 style={{ background: STATUS_COLORS[project.status] || '#9ca3af' }}
               />
               <span className="project-list-status">{project.status}</span>
-              <span className="project-list-priority">· {project.priority}</span>
+              <span className="project-list-priority">· {project.category}</span>
             </div>
             <button
               className="btn-delete project-delete"

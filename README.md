@@ -4,8 +4,8 @@ A web-based application that helps users organize, maintain, and track multiple 
 
 ## Features
 
-- **Project list** — left sidebar lists all projects with status badge and priority; supports real-time text search
-- **Project properties** — editable metadata (name, status, priority, owner, start/target date, budget, description)
+- **Project list** — left sidebar lists all projects with status badge and category; supports real-time text search
+- **Project properties** — editable metadata (name, short description, status, category, business unit, business sponsor)
 - **Tasks** — per-project task list with status tracking (Not Started / In Progress / Done) and assignee
 - **Documents** — per-project document registry with type icons and optional URL links
 - **Notes** — date/time stamped notes log, newest first
