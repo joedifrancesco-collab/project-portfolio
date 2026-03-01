@@ -1,16 +1,36 @@
-# React + Vite
+# Project Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A web-based application that helps users organize, maintain, and track multiple projects in one place.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Project list** — left sidebar lists all projects with status badge and priority; supports real-time text search
+- **Project properties** — editable metadata (name, status, priority, owner, start/target date, budget, description)
+- **Tasks** — per-project task list with status tracking (Not Started / In Progress / Done) and assignee
+- **Documents** — per-project document registry with type icons and optional URL links
+- **Notes** — date/time stamped notes log, newest first
+- **Local persistence** — all data is saved to the browser's `localStorage`; no backend required
 
-## React Compiler
+## Getting Started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+npm run dev
+```
 
-## Expanding the ESLint configuration
+Then open [http://localhost:5173](http://localhost:5173) in your browser.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start the development server |
+| `npm run build` | Build for production |
+| `npm run preview` | Preview the production build |
+| `npm run lint` | Run ESLint |
+
+## Tech Stack
+
+- [React 19](https://react.dev)
+- [Vite](https://vite.dev)
+- localStorage for persistence (no backend needed)
