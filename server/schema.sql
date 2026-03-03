@@ -67,3 +67,23 @@ BEGIN
     );
 END
 GO
+
+-- Categories
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Categories')
+BEGIN
+    CREATE TABLE Categories (
+        id   INT IDENTITY(1,1) PRIMARY KEY,
+        name NVARCHAR(100) NOT NULL
+    );
+END
+GO
+
+-- BusinessUnits
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'BusinessUnits')
+BEGIN
+    CREATE TABLE BusinessUnits (
+        id   INT IDENTITY(1,1) PRIMARY KEY,
+        name NVARCHAR(100) NOT NULL
+    );
+END
+GO

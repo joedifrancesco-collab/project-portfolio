@@ -3,7 +3,7 @@ import TaskList from './TaskList';
 import DocumentList from './DocumentList';
 import NotesSection from './NotesSection';
 
-export default function ProjectDetail({ project, onUpdateProject }) {
+export default function ProjectDetail({ project, onUpdateProject, categories, businessUnits }) {
   const updateField = (updates) => {
     onUpdateProject({ ...project, ...updates });
   };
@@ -43,7 +43,7 @@ export default function ProjectDetail({ project, onUpdateProject }) {
     <div className="project-detail">
       <h1 className="project-title">{project.name}</h1>
 
-      <ProjectProperties project={project} onUpdate={updateField} />
+      <ProjectProperties project={project} onUpdate={updateField} categories={categories} businessUnits={businessUnits} />
 
       <TaskList
         tasks={project.tasks}

@@ -1,14 +1,5 @@
 import { useState } from 'react';
 
-const FIELDS = [
-  { key: 'name', label: 'Project Name' },
-  { key: 'description', label: 'Short Description', type: 'textarea' },
-  { key: 'status', label: 'Status', type: 'select', options: ['Planning', 'In Progress', 'On Hold', 'Completed', 'Cancelled'] },
-  { key: 'category', label: 'Category' },
-  { key: 'businessUnit', label: 'Business Unit' },
-  { key: 'businessSponsor', label: 'Business Sponsor' },
-];
-
 const STATUS_BADGE = {
   Planning: '#6366f1',
   'In Progress': '#3b82f6',
@@ -17,7 +8,15 @@ const STATUS_BADGE = {
   Cancelled: '#ef4444',
 };
 
-export default function ProjectProperties({ project, onUpdate }) {
+export default function ProjectProperties({ project, onUpdate, categories = [], businessUnits = [] }) {
+  const FIELDS = [
+    { key: 'name', label: 'Project Name' },
+    { key: 'description', label: 'Short Description', type: 'textarea' },
+    { key: 'status', label: 'Status', type: 'select', options: ['Planning', 'In Progress', 'On Hold', 'Completed', 'Cancelled'] },
+    { key: 'category', label: 'Category', type: 'select', options: categories },
+    { key: 'businessUnit', label: 'Business Unit', type: 'select', options: businessUnits },
+    { key: 'businessSponsor', label: 'Business Sponsor' },
+  ];
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ ...project });
 
@@ -53,6 +52,9 @@ export default function ProjectProperties({ project, onUpdate }) {
                     value={form[key] || ''}
                     onChange={(e) => setForm({ ...form, [key]: e.target.value })}
                   >
+                    {(key === 'category' || key === 'businessUnit') && (
+                      <option value="">— Select —</option>
+                    )}
                     {options.map((o) => <option key={o}>{o}</option>)}
                   </select>
                 ) : type === 'textarea' ? (

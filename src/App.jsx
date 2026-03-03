@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useProjects } from './hooks/useProjects';
+import { useLookups } from './hooks/useLookups';
 import ProjectList from './components/ProjectList';
 import ProjectDetail from './components/ProjectDetail';
 import './App.css';
 
 export default function App() {
   const { projects, loading, error, addProject, updateProject, deleteProject } = useProjects();
+  const { categories, businessUnits } = useLookups();
   const [selectedId, setSelectedId] = useState(null);
 
   // Select first project once data loads
@@ -68,11 +70,13 @@ export default function App() {
         onSelect={handleSelect}
         onAddProject={handleAddProject}
         onDeleteProject={handleDeleteProject}
+        categories={categories}
+        businessUnits={businessUnits}
       />
 
       <main className="main-content">
         {selectedProject ? (
-          <ProjectDetail project={selectedProject} onUpdateProject={handleUpdateProject} />
+          <ProjectDetail project={selectedProject} onUpdateProject={handleUpdateProject} categories={categories} businessUnits={businessUnits} />
         ) : (
           <div className="empty-state">
             <div className="empty-state-icon">📁</div>

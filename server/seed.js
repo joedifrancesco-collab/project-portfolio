@@ -1,10 +1,26 @@
 /**
  * seed.js — Inserts the sample projects (tasks, documents, notes)
- * into the ProjectPortfolio database.
+ * and lookup tables (Categories, BusinessUnits) into the ProjectPortfolio database.
  * Run once:  node seed.js
  */
 
 const { getPool, sql } = require('./db');
+
+const sampleCategories = [
+  'Marketing',
+  'Technology',
+  'Infrastructure',
+  'Finance',
+  'Operations',
+];
+
+const sampleBusinessUnits = [
+  'Corporate Communications',
+  'Product Development',
+  'IT Operations',
+  'Finance & Accounting',
+  'Human Resources',
+];
 
 const sampleProjects = [
   {
@@ -129,6 +145,32 @@ async function seed() {
     }
 
     console.log(`  OK    "${project.name}" — ${project.tasks.length} task(s), ${project.documents.length} doc(s), ${project.notes.length} note(s)`);
+  }
+
+  // Seed Categories
+  const existingCats = await pool.request().query('SELECT COUNT(*) AS cnt FROM Categories');
+  if (existingCats.recordset[0].cnt === 0) {
+    for (const name of sampleCategories) {
+      await pool.request()
+        .input('name', sql.NVarChar, name)
+        .query('INSERT INTO Categories (name) VALUES (@name)');
+    }
+    console.log(`\n  OK    Seeded ${sampleCategories.length} categories`);
+  } else {
+    console.log('\n  SKIP  Categories (already seeded)');
+  }
+
+  // Seed BusinessUnits
+  const existingBUs = await pool.request().query('SELECT COUNT(*) AS cnt FROM BusinessUnits');
+  if (existingBUs.recordset[0].cnt === 0) {
+    for (const name of sampleBusinessUnits) {
+      await pool.request()
+        .input('name', sql.NVarChar, name)
+        .query('INSERT INTO BusinessUnits (name) VALUES (@name)');
+    }
+    console.log(`  OK    Seeded ${sampleBusinessUnits.length} business units`);
+  } else {
+    console.log('  SKIP  BusinessUnits (already seeded)');
   }
 
   console.log('\nSeed complete.');

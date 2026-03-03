@@ -8,7 +8,7 @@ const STATUS_COLORS = {
   Cancelled: '#ef4444',
 };
 
-export default function ProjectList({ projects, selectedId, onSelect, onAddProject, onDeleteProject }) {
+export default function ProjectList({ projects, selectedId, onSelect, onAddProject, onDeleteProject, categories, businessUnits }) {
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', status: 'Planning', category: '', businessUnit: '', businessSponsor: '', description: '' });
@@ -75,18 +75,22 @@ export default function ProjectList({ projects, selectedId, onSelect, onAddProje
             <option>Completed</option>
             <option>Cancelled</option>
           </select>
-          <input
-            className="form-input"
-            placeholder="Category"
+          <select
+            className="form-select"
             value={form.category}
             onChange={(e) => setForm({ ...form, category: e.target.value })}
-          />
-          <input
-            className="form-input"
-            placeholder="Business Unit"
+          >
+            <option value="">— Category —</option>
+            {categories.map((c) => <option key={c}>{c}</option>)}
+          </select>
+          <select
+            className="form-select"
             value={form.businessUnit}
             onChange={(e) => setForm({ ...form, businessUnit: e.target.value })}
-          />
+          >
+            <option value="">— Business Unit —</option>
+            {businessUnits.map((u) => <option key={u}>{u}</option>)}
+          </select>
           <input
             className="form-input"
             placeholder="Business Sponsor"
