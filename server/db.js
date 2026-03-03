@@ -1,10 +1,13 @@
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const sql = require('mssql');
 
 const config = {
-  server: 'localhost\\SQLEXPRESS',
-  database: 'ProjectPortfolio',
+  server: process.env.DB_SERVER || 'localhost\\SQLEXPRESS',
+  database: process.env.DB_NAME || 'ProjectPortfolio',
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
   options: {
-    trustedConnection: true,      // Windows Authentication
+    encrypt: false,
     enableArithAbort: true,
     trustServerCertificate: true,
   },
