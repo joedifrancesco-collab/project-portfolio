@@ -4,7 +4,7 @@
  * Run once:  node seed.js
  */
 
-const { getPool, sql } = require('./db');
+const { getPool } = require('./db');
 
 const sampleCategories = [
   'Marketing',
@@ -94,66 +94,48 @@ async function seed() {
 
   for (const project of sampleProjects) {
     // Skip if project already exists
-    const exists = await pool.request()
-      .input('id', sql.NVarChar, project.id)
-      .query('SELECT id FROM Projects WHERE id = @id');
+    const exists = await pool.query('SELECT id FROM Projects WHERE id = $1', [project.id]);
 
-    if (exists.recordset.length > 0) {
+    if (exists.rows.length > 0) {
       console.log(`  SKIP  "${project.name}" (already exists)`);
       continue;
     }
 
-    await pool.request()
-      .input('id', sql.NVarChar, project.id)
-      .input('name', sql.NVarChar, project.name)
-      .input('status', sql.NVarChar, project.status)
-      .input('category', sql.NVarChar, project.category)
-      .input('businessUnit', sql.NVarChar, project.businessUnit)
-      .input('businessSponsor', sql.NVarChar, project.businessSponsor)
-      .input('description', sql.NVarChar, project.description)
-      .query(`INSERT INTO Projects (id, name, status, category, businessUnit, businessSponsor, description)
-              VALUES (@id, @name, @status, @category, @businessUnit, @businessSponsor, @description)`);
+    await pool.query(
+      `INSERT INTO Projects (id, name, status, category, businessUnit, businessSponsor, description)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [project.id, project.name, project.status, project.category, project.businessUnit, project.businessSponsor, project.description]
+    );
 
     for (const t of project.tasks) {
-      await pool.request()
-        .input('id', sql.NVarChar, t.id)
-        .input('projectId', sql.NVarChar, project.id)
-        .input('title', sql.NVarChar, t.title)
-        .input('status', sql.NVarChar, t.status)
-        .input('assignee', sql.NVarChar, t.assignee)
-        .query('INSERT INTO Tasks (id, projectId, title, status, assignee) VALUES (@id, @projectId, @title, @status, @assignee)');
+      await pool.query(
+        'INSERT INTO Tasks (id, projectId, title, status, assignee) VALUES ($1, $2, $3, $4, $5)',
+        [t.id, project.id, t.title, t.status, t.assignee]
+      );
     }
 
     for (const d of project.documents) {
-      await pool.request()
-        .input('id', sql.NVarChar, d.id)
-        .input('projectId', sql.NVarChar, project.id)
-        .input('name', sql.NVarChar, d.name)
-        .input('type', sql.NVarChar, d.type)
-        .input('url', sql.NVarChar, d.url)
-        .input('uploadedAt', sql.NVarChar, d.uploadedAt)
-        .query('INSERT INTO Documents (id, projectId, name, type, url, uploadedAt) VALUES (@id, @projectId, @name, @type, @url, @uploadedAt)');
+      await pool.query(
+        'INSERT INTO Documents (id, projectId, name, type, url, uploadedAt) VALUES ($1, $2, $3, $4, $5, $6)',
+        [d.id, project.id, d.name, d.type, d.url, d.uploadedAt]
+      );
     }
 
     for (const n of project.notes) {
-      await pool.request()
-        .input('id', sql.NVarChar, n.id)
-        .input('projectId', sql.NVarChar, project.id)
-        .input('text', sql.NVarChar, n.text)
-        .input('createdAt', sql.NVarChar, n.createdAt)
-        .query('INSERT INTO Notes (id, projectId, text, createdAt) VALUES (@id, @projectId, @text, @createdAt)');
+      await pool.query(
+        'INSERT INTO Notes (id, projectId, text, createdAt) VALUES ($1, $2, $3, $4)',
+        [n.id, project.id, n.text, n.createdAt]
+      );
     }
 
     console.log(`  OK    "${project.name}" — ${project.tasks.length} task(s), ${project.documents.length} doc(s), ${project.notes.length} note(s)`);
   }
 
   // Seed Categories
-  const existingCats = await pool.request().query('SELECT COUNT(*) AS cnt FROM Categories');
-  if (existingCats.recordset[0].cnt === 0) {
+  const existingCats = await pool.query('SELECT COUNT(*) AS cnt FROM Categories');
+  if (parseInt(existingCats.rows[0].cnt, 10) === 0) {
     for (const name of sampleCategories) {
-      await pool.request()
-        .input('name', sql.NVarChar, name)
-        .query('INSERT INTO Categories (name) VALUES (@name)');
+      await pool.query('INSERT INTO Categories (name) VALUES ($1)', [name]);
     }
     console.log(`\n  OK    Seeded ${sampleCategories.length} categories`);
   } else {
@@ -161,12 +143,10 @@ async function seed() {
   }
 
   // Seed BusinessUnits
-  const existingBUs = await pool.request().query('SELECT COUNT(*) AS cnt FROM BusinessUnits');
-  if (existingBUs.recordset[0].cnt === 0) {
+  const existingBUs = await pool.query('SELECT COUNT(*) AS cnt FROM BusinessUnits');
+  if (parseInt(existingBUs.rows[0].cnt, 10) === 0) {
     for (const name of sampleBusinessUnits) {
-      await pool.request()
-        .input('name', sql.NVarChar, name)
-        .query('INSERT INTO BusinessUnits (name) VALUES (@name)');
+      await pool.query('INSERT INTO BusinessUnits (name) VALUES ($1)', [name]);
     }
     console.log(`  OK    Seeded ${sampleBusinessUnits.length} business units`);
   } else {

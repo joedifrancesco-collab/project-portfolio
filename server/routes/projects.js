@@ -1,25 +1,25 @@
 const express = require('express');
 const router = express.Router();
-const { getPool, sql } = require('../db');
+const { getPool } = require('../db');
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 async function fetchFullProject(pool, id) {
   const [projectResult, tasksResult, docsResult, notesResult] = await Promise.all([
-    pool.request().input('id', sql.NVarChar, id).query('SELECT * FROM Projects WHERE id = @id'),
-    pool.request().input('id', sql.NVarChar, id).query('SELECT * FROM Tasks WHERE projectId = @id'),
-    pool.request().input('id', sql.NVarChar, id).query('SELECT * FROM Documents WHERE projectId = @id'),
-    pool.request().input('id', sql.NVarChar, id).query('SELECT * FROM Notes WHERE projectId = @id'),
+    pool.query('SELECT * FROM Projects WHERE id = $1', [id]),
+    pool.query('SELECT * FROM Tasks WHERE projectId = $1', [id]),
+    pool.query('SELECT * FROM Documents WHERE projectId = $1', [id]),
+    pool.query('SELECT * FROM Notes WHERE projectId = $1', [id]),
   ]);
 
-  const project = projectResult.recordset[0];
+  const project = projectResult.rows[0];
   if (!project) return null;
 
   return {
     ...project,
-    tasks: tasksResult.recordset,
-    documents: docsResult.recordset,
-    notes: notesResult.recordset,
+    tasks: tasksResult.rows,
+    documents: docsResult.rows,
+    notes: notesResult.rows,
   };
 }
 
@@ -28,21 +28,21 @@ async function fetchFullProject(pool, id) {
 router.get('/', async (req, res) => {
   try {
     const pool = await getPool();
-    const projectsResult = await pool.request().query('SELECT * FROM Projects ORDER BY createdAt');
-    const projects = projectsResult.recordset;
+    const projectsResult = await pool.query('SELECT * FROM Projects ORDER BY createdAt');
+    const projects = projectsResult.rows;
 
     if (projects.length === 0) return res.json([]);
 
     // Fetch all nested data in one query each, then group by projectId
     const [tasksResult, docsResult, notesResult] = await Promise.all([
-      pool.request().query('SELECT * FROM Tasks'),
-      pool.request().query('SELECT * FROM Documents'),
-      pool.request().query('SELECT * FROM Notes'),
+      pool.query('SELECT * FROM Tasks'),
+      pool.query('SELECT * FROM Documents'),
+      pool.query('SELECT * FROM Notes'),
     ]);
 
-    const tasksByProject = groupBy(tasksResult.recordset, 'projectId');
-    const docsByProject = groupBy(docsResult.recordset, 'projectId');
-    const notesByProject = groupBy(notesResult.recordset, 'projectId');
+    const tasksByProject = groupBy(tasksResult.rows, 'projectid');
+    const docsByProject = groupBy(docsResult.rows, 'projectid');
+    const notesByProject = groupBy(notesResult.rows, 'projectid');
 
     const result = projects.map((p) => ({
       ...p,
@@ -79,16 +79,11 @@ router.post('/', async (req, res) => {
   try {
     const pool = await getPool();
 
-    await pool.request()
-      .input('id', sql.NVarChar, id)
-      .input('name', sql.NVarChar, name)
-      .input('status', sql.NVarChar, status || 'Planning')
-      .input('category', sql.NVarChar, category || null)
-      .input('businessUnit', sql.NVarChar, businessUnit || null)
-      .input('businessSponsor', sql.NVarChar, businessSponsor || null)
-      .input('description', sql.NVarChar, description || null)
-      .query(`INSERT INTO Projects (id, name, status, category, businessUnit, businessSponsor, description)
-              VALUES (@id, @name, @status, @category, @businessUnit, @businessSponsor, @description)`);
+    await pool.query(
+      `INSERT INTO Projects (id, name, status, category, businessUnit, businessSponsor, description)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [id, name, status || 'Planning', category || null, businessUnit || null, businessSponsor || null, description || null]
+    );
 
     await insertNested(pool, id, tasks, documents, notes);
 
@@ -107,30 +102,22 @@ router.put('/:id', async (req, res) => {
   try {
     const pool = await getPool();
 
-    const exists = await pool.request()
-      .input('id', sql.NVarChar, req.params.id)
-      .query('SELECT id FROM Projects WHERE id = @id');
+    const exists = await pool.query('SELECT id FROM Projects WHERE id = $1', [req.params.id]);
 
-    if (exists.recordset.length === 0) return res.status(404).json({ error: 'Project not found' });
+    if (exists.rows.length === 0) return res.status(404).json({ error: 'Project not found' });
 
-    await pool.request()
-      .input('id', sql.NVarChar, req.params.id)
-      .input('name', sql.NVarChar, name)
-      .input('status', sql.NVarChar, status || 'Planning')
-      .input('category', sql.NVarChar, category || null)
-      .input('businessUnit', sql.NVarChar, businessUnit || null)
-      .input('businessSponsor', sql.NVarChar, businessSponsor || null)
-      .input('description', sql.NVarChar, description || null)
-      .query(`UPDATE Projects
-              SET name = @name, status = @status, category = @category,
-                  businessUnit = @businessUnit, businessSponsor = @businessSponsor,
-                  description = @description, updatedAt = GETDATE()
-              WHERE id = @id`);
+    await pool.query(
+      `UPDATE Projects
+       SET name = $1, status = $2, category = $3, businessUnit = $4,
+           businessSponsor = $5, description = $6, updatedAt = NOW()
+       WHERE id = $7`,
+      [name, status || 'Planning', category || null, businessUnit || null, businessSponsor || null, description || null, req.params.id]
+    );
 
     // Replace nested data: delete then re-insert
-    await pool.request().input('id', sql.NVarChar, req.params.id).query('DELETE FROM Tasks WHERE projectId = @id');
-    await pool.request().input('id', sql.NVarChar, req.params.id).query('DELETE FROM Documents WHERE projectId = @id');
-    await pool.request().input('id', sql.NVarChar, req.params.id).query('DELETE FROM Notes WHERE projectId = @id');
+    await pool.query('DELETE FROM Tasks WHERE projectId = $1', [req.params.id]);
+    await pool.query('DELETE FROM Documents WHERE projectId = $1', [req.params.id]);
+    await pool.query('DELETE FROM Notes WHERE projectId = $1', [req.params.id]);
     await insertNested(pool, req.params.id, tasks, documents, notes);
 
     const project = await fetchFullProject(pool, req.params.id);
@@ -146,9 +133,7 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const pool = await getPool();
-    await pool.request()
-      .input('id', sql.NVarChar, req.params.id)
-      .query('DELETE FROM Projects WHERE id = @id');
+    await pool.query('DELETE FROM Projects WHERE id = $1', [req.params.id]);
     res.status(204).end();
   } catch (err) {
     console.error('DELETE /api/projects/:id error:', err);
@@ -167,31 +152,22 @@ function groupBy(arr, key) {
 
 async function insertNested(pool, projectId, tasks, documents, notes) {
   for (const t of tasks) {
-    await pool.request()
-      .input('id', sql.NVarChar, t.id)
-      .input('projectId', sql.NVarChar, projectId)
-      .input('title', sql.NVarChar, t.title)
-      .input('status', sql.NVarChar, t.status || 'Not Started')
-      .input('assignee', sql.NVarChar, t.assignee || null)
-      .query('INSERT INTO Tasks (id, projectId, title, status, assignee) VALUES (@id, @projectId, @title, @status, @assignee)');
+    await pool.query(
+      'INSERT INTO Tasks (id, projectId, title, status, assignee) VALUES ($1, $2, $3, $4, $5)',
+      [t.id, projectId, t.title, t.status || 'Not Started', t.assignee || null]
+    );
   }
   for (const d of documents) {
-    await pool.request()
-      .input('id', sql.NVarChar, d.id)
-      .input('projectId', sql.NVarChar, projectId)
-      .input('name', sql.NVarChar, d.name)
-      .input('type', sql.NVarChar, d.type || null)
-      .input('url', sql.NVarChar, d.url || null)
-      .input('uploadedAt', sql.NVarChar, d.uploadedAt || null)
-      .query('INSERT INTO Documents (id, projectId, name, type, url, uploadedAt) VALUES (@id, @projectId, @name, @type, @url, @uploadedAt)');
+    await pool.query(
+      'INSERT INTO Documents (id, projectId, name, type, url, uploadedAt) VALUES ($1, $2, $3, $4, $5, $6)',
+      [d.id, projectId, d.name, d.type || null, d.url || null, d.uploadedAt || null]
+    );
   }
   for (const n of notes) {
-    await pool.request()
-      .input('id', sql.NVarChar, n.id)
-      .input('projectId', sql.NVarChar, projectId)
-      .input('text', sql.NVarChar, n.text)
-      .input('createdAt', sql.NVarChar, n.createdAt || null)
-      .query('INSERT INTO Notes (id, projectId, text, createdAt) VALUES (@id, @projectId, @text, @createdAt)');
+    await pool.query(
+      'INSERT INTO Notes (id, projectId, text, createdAt) VALUES ($1, $2, $3, $4)',
+      [n.id, projectId, n.text, n.createdAt || null]
+    );
   }
 }
 
