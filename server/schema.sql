@@ -1,89 +1,54 @@
--- Run this script in SSMS to create the ProjectPortfolio database and tables.
-
-USE master;
-GO
-
-IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'ProjectPortfolio')
-BEGIN
-    CREATE DATABASE ProjectPortfolio;
-END
-GO
-
-USE ProjectPortfolio;
-GO
+-- Run this script in psql to create the tables in the project_portfolio database.
+-- psql -U portfolio_user -d project_portfolio -f schema.sql
 
 -- Projects
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Projects')
-BEGIN
-    CREATE TABLE Projects (
-        id            NVARCHAR(50)  PRIMARY KEY,
-        name          NVARCHAR(255) NOT NULL,
-        status        NVARCHAR(50)  NOT NULL DEFAULT 'Planning',
-        category      NVARCHAR(100) NULL,
-        businessUnit  NVARCHAR(100) NULL,
-        businessSponsor NVARCHAR(100) NULL,
-        description   NVARCHAR(MAX) NULL,
-        createdAt     DATETIME2     DEFAULT GETDATE(),
-        updatedAt     DATETIME2     DEFAULT GETDATE()
-    );
-END
-GO
+CREATE TABLE IF NOT EXISTS Projects (
+    id              VARCHAR(50)  PRIMARY KEY,
+    name            VARCHAR(255) NOT NULL,
+    status          VARCHAR(50)  NOT NULL DEFAULT 'Planning',
+    category        VARCHAR(100),
+    businessUnit    VARCHAR(100),
+    businessSponsor VARCHAR(100),
+    description     TEXT,
+    createdAt       TIMESTAMP    DEFAULT NOW(),
+    updatedAt       TIMESTAMP    DEFAULT NOW()
+);
 
 -- Tasks
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Tasks')
-BEGIN
-    CREATE TABLE Tasks (
-        id        NVARCHAR(50)  PRIMARY KEY,
-        projectId NVARCHAR(50)  NOT NULL REFERENCES Projects(id) ON DELETE CASCADE,
-        title     NVARCHAR(255) NOT NULL,
-        status    NVARCHAR(50)  NOT NULL DEFAULT 'Not Started',
-        assignee  NVARCHAR(100) NULL
-    );
-END
-GO
+CREATE TABLE IF NOT EXISTS Tasks (
+    id        VARCHAR(50)  PRIMARY KEY,
+    projectId VARCHAR(50)  NOT NULL REFERENCES Projects(id) ON DELETE CASCADE,
+    title     VARCHAR(255) NOT NULL,
+    status    VARCHAR(50)  NOT NULL DEFAULT 'Not Started',
+    assignee  VARCHAR(100)
+);
 
 -- Documents
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Documents')
-BEGIN
-    CREATE TABLE Documents (
-        id          NVARCHAR(50)  PRIMARY KEY,
-        projectId   NVARCHAR(50)  NOT NULL REFERENCES Projects(id) ON DELETE CASCADE,
-        name        NVARCHAR(255) NOT NULL,
-        type        NVARCHAR(50)  NULL,
-        url         NVARCHAR(500) NULL,
-        uploadedAt  NVARCHAR(50)  NULL
-    );
-END
-GO
+CREATE TABLE IF NOT EXISTS Documents (
+    id         VARCHAR(50)  PRIMARY KEY,
+    projectId  VARCHAR(50)  NOT NULL REFERENCES Projects(id) ON DELETE CASCADE,
+    name       VARCHAR(255) NOT NULL,
+    type       VARCHAR(50),
+    url        VARCHAR(500),
+    uploadedAt VARCHAR(50)
+);
 
 -- Notes
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Notes')
-BEGIN
-    CREATE TABLE Notes (
-        id        NVARCHAR(50)  PRIMARY KEY,
-        projectId NVARCHAR(50)  NOT NULL REFERENCES Projects(id) ON DELETE CASCADE,
-        text      NVARCHAR(MAX) NOT NULL,
-        createdAt NVARCHAR(50)  NULL
-    );
-END
-GO
+CREATE TABLE IF NOT EXISTS Notes (
+    id        VARCHAR(50) PRIMARY KEY,
+    projectId VARCHAR(50) NOT NULL REFERENCES Projects(id) ON DELETE CASCADE,
+    text      TEXT        NOT NULL,
+    createdAt VARCHAR(50)
+);
 
 -- Categories
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Categories')
-BEGIN
-    CREATE TABLE Categories (
-        id   INT IDENTITY(1,1) PRIMARY KEY,
-        name NVARCHAR(100) NOT NULL
-    );
-END
-GO
+CREATE TABLE IF NOT EXISTS Categories (
+    id   SERIAL       PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
 
 -- BusinessUnits
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'BusinessUnits')
-BEGIN
-    CREATE TABLE BusinessUnits (
-        id   INT IDENTITY(1,1) PRIMARY KEY,
-        name NVARCHAR(100) NOT NULL
-    );
-END
-GO
+CREATE TABLE IF NOT EXISTS BusinessUnits (
+    id   SERIAL       PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);

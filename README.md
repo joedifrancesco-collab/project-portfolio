@@ -1,6 +1,6 @@
 # Project Portfolio
 
-A web-based application that helps users organize, maintain, and track multiple projects in one place. Data is persisted in a SQL Server database via a Node.js/Express REST API.
+A web-based application that helps users organize, maintain, and track multiple projects in one place. Data is persisted in a PostgreSQL database via a Node.js/Express REST API.
 
 ## Features
 
@@ -9,31 +9,46 @@ A web-based application that helps users organize, maintain, and track multiple 
 - **Tasks** — per-project task list with status tracking (Not Started / In Progress / Done) and assignee
 - **Documents** — per-project document registry with type icons and optional URL links
 - **Notes** — date/time stamped notes log, newest first
-- **REST API** — full CRUD Express backend; all data persisted in Microsoft SQL Server
+- **REST API** — full CRUD Express backend; all data persisted in PostgreSQL
 
 ## Prerequisites
 
 - **[Node.js](https://nodejs.org/) v18 or newer** (includes `npm`)
-- **Microsoft SQL Server** — SQL Server Express (free) works fine. Download from [https://www.microsoft.com/en-us/sql-server/sql-server-downloads](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
-- **[SSMS](https://aka.ms/ssmsfullsetup)** or Azure Data Studio (optional, for running schema scripts)
+- **[PostgreSQL](https://www.postgresql.org/download/) v14 or newer**
 - Any modern browser (Chrome, Edge, Firefox, Safari)
 
-To verify Node.js is installed:
+To verify prerequisites are installed:
 
 ```bash
-node --version   # should print v18.x or higher
+node --version    # should print v18.x or higher
 npm --version
+psql --version    # should print 14.x or higher
 ```
 
 ## Getting Started
 
-### 1. Create the database
+### 1. Create the database and user
 
-Open SSMS (or Azure Data Studio), connect to your SQL Server instance, and run the script at `server/schema.sql`. This creates the `ProjectPortfolio` database and all tables.
+```bash
+psql -U postgres
+```
+
+```sql
+CREATE DATABASE project_portfolio;
+CREATE USER "project-portfolio-user" WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE project_portfolio TO "project-portfolio-user";
+\q
+```
+
+Then run the schema script to create the tables:
+
+```bash
+psql -U project-portfolio-user -d project_portfolio -f server/schema.sql
+```
 
 ### 2. Configure the API server
 
-Copy the example environment file and fill in your SQL Server credentials:
+Copy the example environment file and fill in your PostgreSQL credentials:
 
 ```bash
 cp server/.env.example server/.env
@@ -42,13 +57,12 @@ cp server/.env.example server/.env
 Edit `server/.env`:
 
 ```env
-DB_SERVER=localhost\SQLEXPRESS
-DB_NAME=ProjectPortfolio
-DB_USER=your_sql_login
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=project_portfolio
+DB_USER=project-portfolio-user
 DB_PASSWORD=your_password
 ```
-
-> **Windows Authentication:** If you use Windows Auth, leave `DB_USER` and `DB_PASSWORD` blank and set `trustedConnection=true` in `server/db.js`.
 
 ### 3. Install dependencies
 
@@ -66,7 +80,7 @@ cd server && npm install && cd ..
 npm run seed
 ```
 
-This populates the database with 3 sample projects and seeds the Categories and BusinessUnits lookup tables.
+This populates the database with sample projects and seeds the Categories and BusinessUnits lookup tables.
 
 ### 5. Start the app
 
@@ -114,7 +128,7 @@ project-portfolio/
 │   ├── routes/
 │   │   ├── projects.js   # Project CRUD routes
 │   │   └── lookup.js     # Categories & BusinessUnits routes
-│   ├── db.js             # SQL Server connection pool
+│   ├── db.js             # PostgreSQL connection pool (pg)
 │   ├── schema.sql        # Database schema
 │   └── seed.js           # Sample data seeder
 └── public/
@@ -125,5 +139,5 @@ project-portfolio/
 - [React 19](https://react.dev)
 - [Vite](https://vite.dev)
 - [Express](https://expressjs.com) — REST API
-- [mssql](https://www.npmjs.com/package/mssql) — SQL Server driver
-- Microsoft SQL Server (Express or higher)
+- [pg](https://www.npmjs.com/package/pg) — PostgreSQL driver
+- [PostgreSQL](https://www.postgresql.org/) v14+
